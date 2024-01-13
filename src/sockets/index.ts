@@ -3,14 +3,12 @@ import { Server } from "socket.io";
 export const SocketRouteHandler = (io: Server) => {
   io.on("connection", (socket) => {
     //initialize event, see sessions for this
-    // let friends = [];
-    // let groups = [];
-    // let payload = { friends, groups };
     // socket.to(socket.id ).emit("initConnection", payload);
     console.log("user connected");
 
     socket.on("initConnection", (userID: string) => {
       socket.join(userID);
+
       io.to(userID).emit("debugMsg", userID + " Joined");
     });
 
