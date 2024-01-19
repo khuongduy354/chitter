@@ -1,17 +1,16 @@
 import { Server, Socket } from "socket.io";
-import { supabase } from "../helper/supabase";
 
 export const SocketRouteHandler = (io: Server) => {
   // auth
-  io.use(async (socket: Socket, next) => {
-    const value = await supabase.auth.getUser();
-    if (value.data.user) {
-      next();
-    } else {
-      const err = new Error("not authorized");
-      next(err);
-    }
-  });
+  // io.use(async (socket: Socket, next) => {
+  //   const value = await supabase.auth.getUser();
+  //   if (value.data.user) {
+  //     next();
+  //   } else {
+  //     const err = new Error("not authorized");
+  //     next(err);
+  //   }
+  // });
 
   io.on("connection", (socket) => {
     //initialize event, see sessions for this
@@ -29,7 +28,7 @@ export const SocketRouteHandler = (io: Server) => {
       "userChat",
       (sender_id: string, receiver_id: string, content: string) => {
         let payload = { content, from: sender_id };
-        io.to(receiver_id).emit("userChatReceive", payload);
+        io.to(receiver_id).to(sender_id).emit("userChatReceive", payload);
       }
     );
     socket.on("joinGroup", (group_id: string) => {

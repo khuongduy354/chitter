@@ -10,7 +10,7 @@ import cors from "cors";
 const PORT = 8000;
 const app = express();
 const httpserver = createServer(app);
-const io = new Server(httpserver);
+const io = new Server(httpserver, { cors: { origin: "*" } });
 
 SocketRouteHandler(io);
 app.use(cors());
