@@ -12,8 +12,9 @@ UserRoute.get(
 );
 UserRoute.post("/me/friend/request", isAuth, UserController.sendFriendRequest);
 UserRoute.post("/me/friend/add", isAuth, UserController.addFriend);
-UserRoute.get("/me/groups", isAuth, UserController.getGroups);
-UserRoute.get("/me", isAuth, UserController.getMe);
 UserRoute.get("/user", UserController.searchFriend);
+
+UserRoute.get("/me/groups", isAuth, UserController.getMyGroups);
+UserRoute.get("/me", isAuth, UserController.getMe);
 
 export { UserRoute };

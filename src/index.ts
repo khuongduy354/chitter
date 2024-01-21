@@ -28,6 +28,12 @@ app.get("/test", async (req: Request, res: Response) => {
 
 app.use(route);
 
+process.on("uncaughtException", (err) => {
+  console.log(err);
+});
+process.on("unhandledRejection", (err) => {
+  console.log(err);
+});
 httpserver.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });

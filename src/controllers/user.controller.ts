@@ -58,6 +58,9 @@ const sendFriendRequest = async (req: Request, res: Response) => {
       .eq("id", friendId);
     if (!userData) return res.status(404).json({ message: "User not found" });
 
+    // TODO: check if already friend
+
+    // friend request
     const { error } = await supabase
       .from("FriendRequest")
       .insert({ from: req.user.id, to: friendId });
@@ -97,21 +100,23 @@ const getFriends = async (req: Request, res: Response) => {
     const { data } = await supabase.rpc("query_friend", {
       email: req.user.email,
     });
-    console.log(data);
     if (data) res.status(200).json({ friends: data });
     else res.status(404).json({ message: "Error" });
   } catch (error) {}
 };
 
-const getGroups = (req: Request, res: Response) => {
+const getMyGroups = async (req: Request, res: Response) => {
   try {
-    let groups = [];
-    res.status(200).json({ groups });
+    const { data } = await supabase.rpc("get_groups", { user_id: req.user.id });
+    console.log(data);
+
+    if (data) res.status(200).json({ rooms: data });
+    else res.status(404).json({ message: "Error" });
   } catch (error) {}
 };
 
 export const UserController = {
-  getGroups,
+  getMyGroups,
   getFriends,
   getMe,
   searchFriend,
