@@ -1,3 +1,4 @@
+import uuid4 from "uuid4";
 import { Request, Response } from "express";
 import { supabase } from "../helper/supabase";
 
@@ -14,9 +15,17 @@ const uploadEmoji = async (req: Request, res: Response) => {
         const blob = new Blob(file.buffer);
         return supabase.storage
           .from("Emojis")
-          .upload("Emojis/" + file.originalname, file.buffer, {
-            contentType: file.mimetype,
-          })
+          .upload(
+            "Emojis/" +
+              req.user.id +
+              "/" +
+              file.originalname +
+              uuid4().toString() +
+              file.buffer,
+            {
+              contentType: file.mimetype,
+            }
+          )
           .then((res) => {
             const { error } = res;
             console.log(error);
