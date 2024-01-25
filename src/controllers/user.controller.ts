@@ -108,7 +108,6 @@ const getFriends = async (req: Request, res: Response) => {
 const getMyGroups = async (req: Request, res: Response) => {
   try {
     const { data } = await supabase.rpc("get_groups", { user_id: req.user.id });
-    console.log(data);
 
     if (data) res.status(200).json({ rooms: data });
     else res.status(404).json({ message: "Error" });

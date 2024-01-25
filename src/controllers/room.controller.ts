@@ -8,7 +8,6 @@ const getOneOneRoom = async (req: Request, res: Response) => {
       u1: req.user.id,
       u2: friendId,
     });
-    console.log("oneoneroom", data);
     if (data) res.status(200).json({ room: data });
     else res.status(404).json({ message: "Error" });
   } catch (err) {
@@ -20,7 +19,6 @@ const getGroup = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.query;
     const { data } = await supabase.from("Group").select("*").eq("id", groupId);
-    console.log("getGroup", data);
     if (data) res.status(200).json({ room: data });
     else res.status(404).json({ message: "Error" });
   } catch (err) {
