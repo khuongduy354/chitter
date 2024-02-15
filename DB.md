@@ -49,7 +49,31 @@ User {
 	id integer pk
 	name string
 	theme integer
+} 
+
+### NOSQL 
+Theme{  
+  name: string 
+  sender_msg_color:string
+  other_msg_color:string
+  author:id
+  bg: {   
+    divider: { 
+      max_height,
+      height, 
+      color,
+    } 
+    layers: {
+    {img_url,speed, translateYMin, translateYMax, margin}
+    {img_url,speed, translateYMin, translateYMax, margin}
+    {img_url,speed, translateYMin, translateYMax, margin}
+    {img_url,speed, translateYMin, translateYMax, margin}
+        }  
+
+  }, 
 }
+
+
 
 # Decision notes
 User can create many emojis, add them to many collections or use them individually, it's like a tagging system   

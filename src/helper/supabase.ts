@@ -10,3 +10,15 @@ export const supabase = createClient(
     },
   }
 );
+
+export const getEmojiUrlFromName = (filename: string) => {
+  const base =
+    "https://oeuvmrrvzwmiyhbknqct.supabase.co/storage/v1/object/public/Emojis/Emojis/";
+  return base + filename;
+};
+
+// return file name includes bucket name
+export const urlToBucketFileName = (url: string) => {
+  const fileStart = url.indexOf("public") + 7; // public = 6, / =1, hence 6+1 = 7
+  return url.substring(fileStart);
+};

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { CustomUIController } from "../controllers/custom-ui.controller";
 import { isAuth } from "../middleware/isAuth";
 import multer, { memoryStorage } from "multer";
+import { sanitizeThemePayload } from "../middleware/sanitizeThemePayload";
 
 const CustomUIRoute = Router();
 
@@ -24,5 +25,17 @@ CustomUIRoute.post(
 );
 CustomUIRoute.get("/me/emojis", isAuth, CustomUIController.getMyEmojis);
 CustomUIRoute.delete("/emojis/:id", isAuth, CustomUIController.deleteEmoji);
+
+// CRUD theme
+CustomUIRoute.post(
+  "/theme",
+  isAuth,
+  sanitizeThemePayload,
+  CustomUIController.createTheme
+);
+// CustomUIRoute.put("/themes/:id", isAuth,upload("layers",10), CustomUIController.updateTheme); later
+CustomUIRoute.delete("/themes/:id", isAuth, CustomUIController.deleteTheme);
+CustomUIRoute.get("/me/themes/", isAuth, CustomUIController.getMyThemes);
+CustomUIRoute.get("/themes/:id", CustomUIController.getTheme);
 
 export { CustomUIRoute };
