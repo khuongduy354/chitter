@@ -102,16 +102,17 @@ const getMyEmojis = async (req: Request, res: Response) => {
 
 const createTheme = async (req: Request, res: Response) => {
   try {
-    const { layers, themeName, divider, sender_msg_color, receiver_msg_color } =
-      req.body;
+    const { bg, sender_msg_color, receiver_msg_color, themeName } =
+      req.body.theme;
     const newTheme = await Theme.insertOne({
       name: themeName,
       sender_msg_color,
       receiver_msg_color,
       author: req.user.id,
       bg: {
-        divider,
-        layers,
+        bgColor: bg.bgColor,
+        layers: bg.layers,
+        divider: bg.divider,
       },
     });
     res.status(200).json({ message: "Theme created", theme: newTheme });
