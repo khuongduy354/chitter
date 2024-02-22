@@ -1,4 +1,6 @@
 import { Server, Socket } from "socket.io";
+import { Message } from "../helper/mongodb";
+import { supabase } from "../helper/supabase";
 
 export const SocketRouteHandler = (io: Server) => {
   // auth
@@ -8,7 +10,7 @@ export const SocketRouteHandler = (io: Server) => {
   //     next();
   //   } else {
   //     const err = new Error("not authorized");
-  //     next(err);
+  //     next(err;
   //   }
   // });
 
@@ -26,9 +28,23 @@ export const SocketRouteHandler = (io: Server) => {
 
     socket.on(
       "userChat",
-      (sender_id: string, receiver_id: string, content: string) => {
+      async (sender_id: string, receiver_id: string, content: string) => {
         let payload = { content, from: sender_id };
-        io.to(receiver_id).to(sender_id).emit("userChatReceive", payload);
+
+        const { data: roomData } = await supabase.rpc("query_one_one_room", {
+          u1: sender_id,
+          u2: receiver_id,
+        });
+        if (roomData && roomData.length > 0) {
+          await Message.insertOne({
+            content,
+            from: sender_id,
+            room: roomData[0].id,
+          });
+          io.to(receiver_id).to(sender_id).emit("userChatReceive", payload);
+        } else {
+          io.to(receiver_id).to(sender_id).emit("debugMsg", "No room found");
+        }
       }
     );
     socket.on("joinGroup", (group_id: string) => {
@@ -37,8 +53,9 @@ export const SocketRouteHandler = (io: Server) => {
 
     socket.on(
       "groupChat",
-      (sender_id: string, group_id: string, content: string) => {
+      async (sender_id: string, group_id: string, content: string) => {
         let payload = { content, from: sender_id };
+        await Message.insertOne({ content, from: sender_id, room: group_id });
         io.to(group_id).emit("groupChatReceive", payload);
       }
     );

@@ -71,6 +71,11 @@ Theme{
         }  
 
   }, 
+} 
+
+Message { 
+	from: "id"  
+	to: "id"  # this id can be either group or user id
 }
 
 

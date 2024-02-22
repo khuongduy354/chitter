@@ -5,6 +5,7 @@ import { isAuth } from "../middleware/isAuth";
 const UserRoute = Router();
 
 UserRoute.get("/me/friends", isAuth, UserController.getFriends);
+
 UserRoute.get(
   "/me/friend/requests/received",
   isAuth,

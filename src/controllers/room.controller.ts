@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { supabase } from "../helper/supabase";
+import { Message } from "../helper/mongodb";
 
 const getOneOneRoom = async (req: Request, res: Response) => {
   try {
@@ -93,8 +94,31 @@ const createGroup = async (req: Request, res: Response) => {
     throw err;
   }
 };
+// have an endpoint to get up to 100 room messages
+// query from to if oneone, and to group if group, based on most recent
+// socket saved to Mongodb
+const getRoomMessages = async (req: Request, res: Response) => {
+  try {
+    const { limit: _lim } = req.query;
+    const { roomId } = req.body;
+    if (roomId === undefined)
+      return res.status(404).json({ message: "no room id found" });
+    const limit = _lim === undefined ? 20 : parseInt(_lim.toString());
+
+    const msgs = await Message.find(
+      { room: roomId },
+      { limit, sort: { _id: -1 } }
+    ).toArray();
+    console.log(msgs);
+    if (msgs) res.status(200).json({ messages: msgs });
+    else res.status(404).json({ message: "Error" });
+  } catch (e) {
+    throw e;
+  }
+};
 
 export const RoomController = {
+  getRoomMessages,
   getOneOneRoom,
   getGroup,
   joinGroup,
