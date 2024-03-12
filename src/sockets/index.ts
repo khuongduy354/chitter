@@ -1,6 +1,11 @@
 import { Server, Socket } from "socket.io";
 import { Message } from "../helper/mongodb";
 import { supabase } from "../helper/supabase";
+import {
+  parseMsgJsonToKafkaString,
+  sendToKafka,
+  subscribeTopic,
+} from "../helper/kafka";
 
 export const SocketRouteHandler = (io: Server) => {
   // auth
@@ -23,7 +28,13 @@ export const SocketRouteHandler = (io: Server) => {
 
     socket.on("initConnection", (userID: string) => {
       socket.join(userID);
+      socket.emit("debugMsg", userID + "Joined");
       io.to(userID).emit("debugMsg", userID + " Joined");
+    });
+
+    socket.on("ping", () => {
+      console.log("pinged");
+      socket.emit("pong");
     });
 
     socket.on(
@@ -36,12 +47,20 @@ export const SocketRouteHandler = (io: Server) => {
           u2: receiver_id,
         });
         if (roomData && roomData.length > 0) {
-          await Message.insertOne({
+          const payload = {
             content,
             from: sender_id,
             room: roomData[0].id,
+          };
+          sendToKafka("msg-persist", [parseMsgJsonToKafkaString(payload)]);
+          subscribeTopic("msg-persist-done", (payload) => {
+            io.to(receiver_id).to(sender_id).emit("userChatReceive", payload);
           });
-          io.to(receiver_id).to(sender_id).emit("userChatReceive", payload);
+          subscribeTopic("msg-persist-err", (payload) => {
+            io.to(receiver_id)
+              .to(sender_id)
+              .emit("debugMsg", "Cannot persist message");
+          });
         } else {
           io.to(receiver_id).to(sender_id).emit("debugMsg", "No room found");
         }
