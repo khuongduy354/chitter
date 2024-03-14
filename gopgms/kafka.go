@@ -1,13 +1,15 @@
 package main
 
 import (
+  "os" 
+
 	"github.com/segmentio/kafka-go"
 )
 
-func initialize_kafka_reader(topic string) *kafka.Reader {
-
-	conf := kafka.ReaderConfig{
-		Brokers:  []string{"localhost:9092"},
+func initialize_kafka_reader(topic string) *kafka.Reader { 
+  kafkaUrl:=os.Getenv("KAFKA_URL")
+  conf := kafka.ReaderConfig{
+    Brokers:  []string{kafkaUrl},
 		Topic:    topic,
 		GroupID:  "g4",
 		MaxBytes: 100,

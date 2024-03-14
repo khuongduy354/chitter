@@ -21,7 +21,19 @@ git clone https://github.com/khuongduy354/chitter.git
 cd chitter
 npm install  
 npm run dev
-```
+``` 
+
+# Run with Docker 
+1. Place kafka folder (contain binaries and libs) in ./Dockerbuild  
+2. Run commands in order
+```python 
+# in root 
+docker build -f Dockerbuild/Dockerfile-gopgms -t chitter/go-ms:1.0 . 
+docker build -f Dockerbuild/Dockerfile-express -t chitter/express-server:1.0 . 
+docker compose up 
+``` 
+3. go-ms should print Received message & Written to MongoDB after done
+
 # Tech Stack  
 - Typescript 
 - Express.js  

@@ -18,10 +18,12 @@ func main() {
 
 	topics := []string{"msg-persist"}
 	reader := initialize_kafka_reader(topics[0])
-
+  
+  fmt.Println("Go service is running to store messages!")
 	for {
 		m, err := reader.ReadMessage(context.Background())
-		if err != nil {
+		if err != nil { 
+      fmt.Println("Error when reading messages: ", err);
 			continue
 		}
 
@@ -31,5 +33,7 @@ func main() {
 
 		coll := connect_mongo()
 		write_message(coll, payload)
-	}
+	} 
+  fmt.Println("Go service is no longer listening")
+
 }

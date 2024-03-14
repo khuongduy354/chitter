@@ -1,4 +1,5 @@
 node_modules
 dist
+kafka
 .env
 gopgms/go.sum
