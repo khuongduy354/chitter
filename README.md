@@ -32,7 +32,8 @@ docker build -f Dockerbuild/Dockerfile-gopgms -t chitter/go-ms:1.0 .
 docker build -f Dockerbuild/Dockerfile-express -t chitter/express-server:1.0 . 
 docker compose up 
 ``` 
-3. go-ms should print Received message & Written to MongoDB after done
+3. go-ms should print Received message & Written to MongoDB after done 
+Setup example: https://github.com/segmentio/kafka-go/tree/main/examples
 
 # Tech Stack  
 - Typescript 
