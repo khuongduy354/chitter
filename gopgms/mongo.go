@@ -52,16 +52,11 @@ func msg_str_to_bson(msg string) bson.D {
 		{Key: "room", Value: arr[2]},
 	}
 }
-func write_message(coll *mongo.Collection, payload bson.D) {
+func write_message_to_mongo(coll *mongo.Collection, payload bson.D) error {
 	_, err := coll.InsertOne(
 		context.TODO(),
 		payload,
 	)
-	if err != nil {
-		fmt.Println("Error writing to MongoDB: ", err)
-		//TODO
-	} else {
-		fmt.Println("Message written to MongoDB")
-	}
 
+	return err
 }
