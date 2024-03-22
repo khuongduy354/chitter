@@ -18,6 +18,16 @@ export const SocketRouteHandler = (io: Server) => {
   //     next(err;
   //   }
   // });
+  // kafka layer
+  subscribeTopic("msg-persist-done", (payload) => { 
+    console.log("msg-persist-done received: ", payload.message)
+    const { from, room } = payload.message;
+    io.to(from).to(room).emit("userChatReceive", payload.message);
+  });
+  subscribeTopic("msg-persist-err", (payload) => {
+    const { from, room } = payload.message;
+    io.to(from).to(room).emit("debugMsg", "Cannot persist message");
+  });
 
   io.on("connection", (socket) => {
     //initialize event, see sessions for this
@@ -25,7 +35,6 @@ export const SocketRouteHandler = (io: Server) => {
     console.log("user connected");
 
     // client connect then need to send initConnection with his id
-
     socket.on("initConnection", (userID: string) => {
       socket.join(userID);
       socket.emit("debugMsg", userID + "Joined");
@@ -40,7 +49,6 @@ export const SocketRouteHandler = (io: Server) => {
     socket.on(
       "userChat",
       async (sender_id: string, receiver_id: string, content: string) => {
-        let payload = { content, from: sender_id };
 
         const { data: roomData } = await supabase.rpc("query_one_one_room", {
           u1: sender_id,
@@ -51,17 +59,16 @@ export const SocketRouteHandler = (io: Server) => {
             content,
             from: sender_id,
             room: roomData[0].id,
-          };
-          sendToKafka("msg-persist", [parseMsgJsonToKafkaString(payload)]);
-          subscribeTopic("msg-persist-done", (payload) => {
-            io.to(receiver_id).to(sender_id).emit("userChatReceive", payload);
-          });
-          subscribeTopic("msg-persist-err", (payload) => {
-            io.to(receiver_id)
-              .to(sender_id)
-              .emit("debugMsg", "Cannot persist message");
-          });
+          }; 
+          sendToKafka(
+            "msg-persist",
+            [parseMsgJsonToKafkaString(payload)],
+            (payload:any) => {
+              console.log("sent: ", payload);
+            }
+          );
         } else {
+          console.log("No room found");
           io.to(receiver_id).to(sender_id).emit("debugMsg", "No room found");
         }
       }

@@ -1,23 +1,26 @@
-import { Kafka, Message } from "kafkajs";
+import { EachMessagePayload, Kafka, Message } from "kafkajs"; 
+const kafkaurl = process.env.KAFKA_URL as string === undefined ? "localhost:9092" : process.env.KAFKA_URL as string;
 const kafka = new Kafka({
   clientId: "my-app2",
-  brokers: ["localhost:9092"],
+  brokers: [kafkaurl],
 });
 export type KafkaConsumerCallback = (payload: {
   topic: string;
   partition: number;
-  message: string;
-}) => void;
+  message: any;
+}) => void; 
 
-export async function sendToKafka(topic: string, messages: [string]) {
+export async function sendToKafka(topic: string, messages: [string], cb: Function) {
   const producer = kafka.producer();
-  await producer.connect();
-  await producer.send({
+  await producer.connect(); 
+  const payload = {
     topic,
     messages: messages.map((message) => {
       return { value: message };
     }),
-  });
+  }
+  await producer.send(payload); 
+  cb(payload); 
   await producer.disconnect();
 }
 
@@ -26,10 +29,14 @@ export async function subscribeTopic(topic: string, cb: KafkaConsumerCallback) {
   await consumer.connect();
   await consumer.subscribe({ topic, fromBeginning: true });
   await consumer.run({
-    eachMessage: async (payload: any) => {
-      cb(payload);
+    eachMessage: async (payload: EachMessagePayload) => {  
+      let _payload ={ 
+        ...payload,
+        message: parseKafkaStringToMsgJson(payload.message.value?.toString() as string),
+      } 
+      cb(_payload);
     },
-  });
+  }); 
 }
 export const parseMsgJsonToKafkaString = (msg: {
   content: string;
@@ -38,3 +45,8 @@ export const parseMsgJsonToKafkaString = (msg: {
 }) => {
   return Object.values(msg).join("%");
 };
+  
+export const parseKafkaStringToMsgJson = (msg: string):any => {
+  const [content, from, room] = msg.split("%");
+  return { content, from, room };
+}
