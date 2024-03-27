@@ -22,7 +22,7 @@ func initialize_kafka_reader(topic string) *kafka.Reader {
 	conf := kafka.ReaderConfig{
 		Brokers:  []string{kafkaUrl},
 		Topic:    topic,
-		GroupID:  "g4",
+		GroupID:  "g1",
 		MaxBytes: 100,
 	}
 
