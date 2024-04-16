@@ -86,3 +86,34 @@ User can create many emojis, add them to many collections or use them individual
 Background 1-many ParallaxImages
 need Background to query ParallaxImages faster 
 -> Map table
+
+# Mongo Theme Config
+
+Theme{
+background: {  
+  type: "color" | "parallax" | "image"
+  color:  "hex"
+  image: {url: ""}
+  parallax: {}
+            }, 
+messages:{ 
+selfMessage: { 
+  textColor: ""
+  backgroundColor: ""
+              }, 
+otherMesage: { 
+
+  textColor: ""
+  backgroundColor: ""
+             }
+         }, 
+ 
+emojis: [Emojis], 
+author: "user id here"
+}
+Emojis: { 
+  emojisUrl: ""
+  sizes: "limited size" 
+  tag: ""
+  author: ""
+        }

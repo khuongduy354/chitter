@@ -62,3 +62,4 @@ userReceiveChat:
 groupReceiveChat:   
 debugMsg
 initConnection
+
