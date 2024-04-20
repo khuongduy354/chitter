@@ -1,8 +1,14 @@
-import { getEmojiUrlFromName, urlToBucketFileName } from "./../helper/supabase";
+import {
+  getBackgroundImageUrlFromName,
+  getEmojiUrlFromName,
+  urlToBucketFileName,
+} from "./../helper/supabase";
 import uuid4 from "uuid4";
 import { Request, Response } from "express";
 import { supabase } from "../helper/supabase";
-import { Theme } from "../helper/mongodb";
+import { Theme } from "../models/Theme.model";
+import { MongoError } from "mongodb";
+import { MongooseError } from "mongoose";
 
 const uploadEmoji = async (req: Request, res: Response) => {
   try {
@@ -100,40 +106,57 @@ const getMyEmojis = async (req: Request, res: Response) => {
   }
 };
 
+// TODO: fix here
 const createTheme = async (req: Request, res: Response) => {
   try {
-    const { bg, sender_msg_color, receiver_msg_color, themeName } =
-      req.body.theme;
-    const newTheme = await Theme.insertOne({
-      name: themeName,
-      sender_msg_color,
-      receiver_msg_color,
-      author: req.user.id,
-      bg: {
-        bgColor: bg.bgColor,
-        layers: bg.layers,
-        divider: bg.divider,
-      },
-    });
-    res.status(200).json({ message: "Theme created", theme: newTheme });
+    const { themePayload } = req.body;
+    if (!themePayload || themePayload === undefined)
+      return res.status(400).json({ message: "No theme payload" });
+
+    if (themePayload.background.bgType === "image") {
+      const file = req.file;
+      if (file === undefined)
+        return res.status(400).json({ message: "No image uploaded" });
+
+      const filename =
+        req.user.id + "/" + file.originalname + "-" + uuid4().toString();
+      await supabase.storage
+        .from("Theme")
+        .upload("BackgroundImage/" + filename, file.buffer, {
+          contentType: file.mimetype,
+        });
+
+      themePayload.image.url = getBackgroundImageUrlFromName(filename);
+    }
+
+    const newTheme = await Theme.create(themePayload);
+    res.status(201).json({ message: "Theme created", theme: newTheme });
   } catch (err) {
+    if (err instanceof MongooseError) {
+      return res.status(400).json({ message: err.message });
+    }
     throw err;
   }
 };
 const getMyThemes = async (req: Request, res: Response) => {
   try {
-    const themes = Theme.find({ author: req.user.id });
+    const themes = await Theme.find({ author: req.user.id });
+
     return res.status(200).json({ themes });
   } catch (err) {
     throw err;
   }
 };
+
 const getTheme = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const theme = await Theme.findOne({ _id: id });
     return res.status(200).json({ theme });
   } catch (err) {
+    if (err instanceof MongooseError) {
+      return res.status(404).json({ message: err.message });
+    }
     throw err;
   }
 };
@@ -146,12 +169,31 @@ const deleteTheme = async (req: Request, res: Response) => {
   }
 };
 
+const publishTheme = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const theme = await Theme.findOne({
+      _id: id,
+      author: req.user.id as string,
+    });
+    if (theme === null)
+      return res.status(404).json({ message: "Theme not found" });
+
+    theme.published = true;
+    await theme.save();
+
+    return res.status(200).json({ message: "Theme published" });
+  } catch (err) {
+    throw err;
+  }
+};
 export const CustomUIController = {
   getMyEmojis,
   deleteEmoji,
   uploadEmoji,
   createTheme,
   getMyThemes,
+  publishTheme,
   getTheme,
   deleteTheme,
 };

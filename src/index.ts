@@ -6,11 +6,15 @@ import { createServer } from "http";
 import { SocketRouteHandler } from "./sockets";
 import { Message } from "./helper/mongodb";
 import cors from "cors";
+import mongoose from "mongoose";
 
 const PORT = 8000;
 const app = express();
 const httpserver = createServer(app);
 const io = new Server(httpserver, { cors: { origin: "*" } });
+mongoose.connect(process.env.MONGODB_STRING as string, {
+  dbName: "Chitter",
+});
 
 SocketRouteHandler(io);
 app.use(cors());

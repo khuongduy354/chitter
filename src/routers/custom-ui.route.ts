@@ -27,15 +27,22 @@ CustomUIRoute.get("/me/emojis", isAuth, CustomUIController.getMyEmojis);
 CustomUIRoute.delete("/emojis/:id", isAuth, CustomUIController.deleteEmoji);
 
 // CRUD theme
+// TODO: here
 CustomUIRoute.post(
   "/theme",
   isAuth,
-  sanitizeThemePayload,
+  upload.single("image"),
+  // sanitizeThemePayload,
   CustomUIController.createTheme
 );
 // CustomUIRoute.put("/themes/:id", isAuth,upload("layers",10), CustomUIController.updateTheme); later
 CustomUIRoute.delete("/themes/:id", isAuth, CustomUIController.deleteTheme);
-CustomUIRoute.get("/me/themes/", isAuth, CustomUIController.getMyThemes);
+CustomUIRoute.get("/me/themes/", CustomUIController.getMyThemes);
 CustomUIRoute.get("/themes/:id", CustomUIController.getTheme);
 
+CustomUIRoute.post(
+  "/themes/:id/publish",
+  isAuth,
+  CustomUIController.publishTheme
+);
 export { CustomUIRoute };

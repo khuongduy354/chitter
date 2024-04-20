@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { supabase } from "../helper/supabase";
 import { Message } from "../helper/mongodb";
+import { Theme } from "../models/Theme.model";
+import { Types } from "mongoose";
 
 const getOneOneRoom = async (req: Request, res: Response) => {
   try {
@@ -60,7 +62,14 @@ const joinOneOneRoom = async (req: Request, res: Response) => {
       u1: req.user.id,
       u2: friendId,
     });
-    if (roomData.length > 0) return res.status(200).json({ room: roomData[0] });
+    if (roomData.length > 0) {
+      //popuplate
+      console.log(roomData[0].theme);
+      const theme = await Theme.findById(roomData[0].theme).populate("emojis");
+      roomData[0].theme = theme;
+
+      return res.status(200).json({ room: roomData[0] });
+    }
 
     // if not joined room, join
     const { error } = await supabase
@@ -73,9 +82,12 @@ const joinOneOneRoom = async (req: Request, res: Response) => {
       u1: req.user.id,
       u2: friendId,
     });
-    if (roomData2.length > 0)
+    if (roomData2.length > 0) {
+      //popuplate
+      const theme = await Theme.findById(roomData[0].theme).populate("emojis");
+      roomData2[0].theme = theme;
       return res.status(200).json({ room: roomData2[0] });
-    else res.status(404).json({ message: "Cant found room joined" });
+    } else res.status(404).json({ message: "Cant found room joined" });
   } catch (err) {
     throw err;
   }
@@ -109,7 +121,6 @@ const getRoomMessages = async (req: Request, res: Response) => {
       { room: roomId },
       { limit, sort: { _id: -1 } }
     ).toArray();
-    console.log(msgs);
     if (msgs) res.status(200).json({ messages: msgs });
     else res.status(404).json({ message: "Error" });
   } catch (e) {
