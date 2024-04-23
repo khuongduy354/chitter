@@ -14,9 +14,7 @@ const backgroundSchema = new Schema({
     },
   },
   color: String,
-  image: {
-    url: String,
-  },
+  image: String,
   parallax: {},
 });
 
@@ -64,6 +62,10 @@ const themeSchema = new Schema(
     published: {
       type: Boolean,
       default: false,
+    },
+    buyers: {
+      type: Schema.Types.Array,
+      default: [],
     },
   },
   { collection: "Theme" }

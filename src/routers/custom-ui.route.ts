@@ -37,12 +37,20 @@ CustomUIRoute.post(
 );
 // CustomUIRoute.put("/themes/:id", isAuth,upload("layers",10), CustomUIController.updateTheme); later
 CustomUIRoute.delete("/themes/:id", isAuth, CustomUIController.deleteTheme);
-CustomUIRoute.get("/me/themes/", CustomUIController.getMyThemes);
+CustomUIRoute.get("/me/themes/", isAuth, CustomUIController.getMyThemes);
 CustomUIRoute.get("/themes/:id", CustomUIController.getTheme);
 
 CustomUIRoute.post(
   "/themes/:id/publish",
   isAuth,
   CustomUIController.publishTheme
+);
+
+// market
+CustomUIRoute.get("/themes/market", CustomUIController.getMarketThemes);
+CustomUIRoute.post(
+  "/themes/:id/download",
+  isAuth,
+  CustomUIController.downloadTheme
 );
 export { CustomUIRoute };

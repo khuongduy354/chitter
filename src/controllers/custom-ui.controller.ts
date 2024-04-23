@@ -109,10 +109,12 @@ const getMyEmojis = async (req: Request, res: Response) => {
 // TODO: fix here
 const createTheme = async (req: Request, res: Response) => {
   try {
-    const { themePayload } = req.body;
-    if (!themePayload || themePayload === undefined)
+    let { themePayload } = req.body;
+    themePayload = JSON.parse(themePayload);
+    if (themePayload === null || themePayload === undefined)
       return res.status(400).json({ message: "No theme payload" });
 
+    console.log("themePayload: ", themePayload);
     if (themePayload.background.bgType === "image") {
       const file = req.file;
       if (file === undefined)
@@ -120,29 +122,38 @@ const createTheme = async (req: Request, res: Response) => {
 
       const filename =
         req.user.id + "/" + file.originalname + "-" + uuid4().toString();
-      await supabase.storage
+      const { error } = await supabase.storage
         .from("Theme")
         .upload("BackgroundImage/" + filename, file.buffer, {
           contentType: file.mimetype,
         });
 
-      themePayload.image.url = getBackgroundImageUrlFromName(filename);
+      if (error) throw error;
+
+      console.log(getBackgroundImageUrlFromName(filename));
+      themePayload.background.image = getBackgroundImageUrlFromName(filename);
     }
 
-    const newTheme = await Theme.create(themePayload);
+    console.log("payload for new theme: ", themePayload);
+    const newTheme = await Theme.create(themePayload).catch((err) => {
+      console.log("Mongo err: ", err);
+    });
+    console.log("new theme: ", newTheme);
     res.status(201).json({ message: "Theme created", theme: newTheme });
   } catch (err) {
     if (err instanceof MongooseError) {
       return res.status(400).json({ message: err.message });
     }
+    console.log(err);
     throw err;
   }
 };
 const getMyThemes = async (req: Request, res: Response) => {
   try {
-    const themes = await Theme.find({ author: req.user.id });
+    const myThemes = await Theme.find({ author: req.user.id });
+    const boughtThemes = await Theme.find({ buyers: req.user.id });
 
-    return res.status(200).json({ themes });
+    return res.status(200).json({ themes: [...myThemes, ...boughtThemes] });
   } catch (err) {
     throw err;
   }
@@ -187,6 +198,36 @@ const publishTheme = async (req: Request, res: Response) => {
     throw err;
   }
 };
+
+const getMarketThemes = async (req: Request, res: Response) => {
+  try {
+    let limit =
+      req.query.limit !== undefined ? parseInt(req.query.limit as string) : 10;
+    let skip =
+      req.query.skip !== undefined ? parseInt(req.query.skip as string) : 0;
+
+    const themes = await Theme.find({ published: true })
+      .limit(limit)
+      .skip(skip);
+
+    return res.status(200).json({ themes });
+  } catch (err) {
+    throw err;
+  }
+};
+const downloadTheme = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const theme = await Theme.findOne({ _id: id, published: true });
+    if (theme === null || theme === undefined || !theme.published)
+      return res.status(404).json({ message: "Can't acquire theme" });
+
+    await Theme.updateOne({ _id: id }, { $push: { buyers: req.user.id } });
+    return res.status(200).json({ theme });
+  } catch (err) {
+    throw err;
+  }
+};
 export const CustomUIController = {
   getMyEmojis,
   deleteEmoji,
@@ -196,4 +237,6 @@ export const CustomUIController = {
   publishTheme,
   getTheme,
   deleteTheme,
+  getMarketThemes,
+  downloadTheme,
 };
