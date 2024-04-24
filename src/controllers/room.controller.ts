@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { supabase } from "../helper/supabase";
 import { Message } from "../helper/mongodb";
 import { Theme } from "../models/Theme.model";
-import { Types } from "mongoose";
 
 const getOneOneRoom = async (req: Request, res: Response) => {
   try {

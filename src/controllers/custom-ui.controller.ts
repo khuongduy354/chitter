@@ -7,7 +7,6 @@ import uuid4 from "uuid4";
 import { Request, Response } from "express";
 import { supabase } from "../helper/supabase";
 import { Theme } from "../models/Theme.model";
-import { MongoError } from "mongodb";
 import { MongooseError } from "mongoose";
 
 const uploadEmoji = async (req: Request, res: Response) => {
@@ -19,7 +18,7 @@ const uploadEmoji = async (req: Request, res: Response) => {
 
     const filenames: string[] = [];
     await Promise.all(
-      req.files?.map((file) => {
+      req.files?.map((file: any) => {
         const filename =
           req.user.id + "/" + file.originalname + "-" + uuid4().toString();
         filenames.push(filename);
@@ -71,7 +70,7 @@ const deleteEmoji = async (req: Request, res: Response) => {
       .select()
       .eq("id", id)
       .eq("author", req.user.id);
-    if (data.length === 0)
+    if (!data || data.length === 0)
       return res.status(400).json({ message: "no file in storage" });
 
     const filename = urlToBucketFileName(data[0].img_url).substring(7); // delete initial Emojis/
@@ -210,6 +209,8 @@ const getMarketThemes = async (req: Request, res: Response) => {
       .limit(limit)
       .skip(skip);
 
+    console.log(themes);
+
     return res.status(200).json({ themes });
   } catch (err) {
     throw err;
@@ -228,6 +229,47 @@ const downloadTheme = async (req: Request, res: Response) => {
     throw err;
   }
 };
+
+const applyTheme = async (req: Request, res: Response) => {
+  // get theme
+  const { id } = req.params;
+  const theme = await Theme.findOne({ _id: id }).populate("buyers");
+  if (theme === null || theme === undefined)
+    return res.status(404).json({ message: "Theme not found" });
+
+  // check if theme is owned or bought by me
+  if (
+    !theme.buyers ||
+    theme.buyers === undefined ||
+    !Array.isArray(theme.buyers)
+  )
+    return res.status(404).json({ message: "Theme not bought" });
+
+  const isUseable =
+    theme.author === req.user.id || theme.buyers.includes(req.user.id);
+  if (!isUseable)
+    return res.status(403).json({ message: "Theme not owned or bought" });
+
+  // update chatroom with theme
+  const { chatRoomId } = req.body;
+
+  // apply either group or oneone room
+  const { error } = await supabase
+    .from("Group")
+    .update({ theme: id })
+    .eq("id", chatRoomId)
+    .single();
+  if (error) {
+    const { error: oneoneError } = await supabase
+      .from("OneOneRoom")
+      .update({ theme: id })
+      .eq("id", chatRoomId);
+    if (oneoneError)
+      return res.status(500).json({ message: "Can't apply theme" });
+  }
+
+  return res.status(200).json({ message: "Theme applied" });
+};
 export const CustomUIController = {
   getMyEmojis,
   deleteEmoji,
@@ -239,4 +281,5 @@ export const CustomUIController = {
   deleteTheme,
   getMarketThemes,
   downloadTheme,
+  applyTheme,
 };

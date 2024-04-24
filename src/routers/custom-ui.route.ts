@@ -46,8 +46,10 @@ CustomUIRoute.post(
   CustomUIController.publishTheme
 );
 
+CustomUIRoute.post("/themes/:id/apply", isAuth, CustomUIController.applyTheme);
+
 // market
-CustomUIRoute.get("/themes/market", CustomUIController.getMarketThemes);
+CustomUIRoute.get("/market", CustomUIController.getMarketThemes);
 CustomUIRoute.post(
   "/themes/:id/download",
   isAuth,
