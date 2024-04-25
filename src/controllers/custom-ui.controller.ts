@@ -254,21 +254,34 @@ const applyTheme = async (req: Request, res: Response) => {
   const { chatRoomId } = req.body;
 
   // apply either group or oneone room
-  const { error } = await supabase
+  const { error, data: groupData } = await supabase
     .from("Group")
     .update({ theme: id })
     .eq("id", chatRoomId)
+    .select()
     .single();
   if (error) {
-    const { error: oneoneError } = await supabase
+    const { error: oneoneError, data: oneoneRoomData } = await supabase
       .from("OneOneRoom")
       .update({ theme: id })
-      .eq("id", chatRoomId);
+      .eq("id", chatRoomId)
+      .select()
+      .single();
     if (oneoneError)
       return res.status(500).json({ message: "Can't apply theme" });
+
+    // populate from mongo
+    const oneoneTheme = await Theme.findById(oneoneRoomData.theme);
+
+    return res
+      .status(200)
+      .json({ message: "Theme applied", room: oneoneTheme });
   }
 
-  return res.status(200).json({ message: "Theme applied" });
+  // populate from mongo
+  const groupTheme = await Theme.findById(groupData.theme);
+
+  return res.status(200).json({ message: "Theme applied", room: groupTheme });
 };
 export const CustomUIController = {
   getMyEmojis,

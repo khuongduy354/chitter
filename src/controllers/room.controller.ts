@@ -64,7 +64,7 @@ const joinOneOneRoom = async (req: Request, res: Response) => {
     if (roomData.length > 0) {
       //popuplate
       console.log(roomData[0].theme);
-      const theme = await Theme.findById(roomData[0].theme).populate("emojis");
+      const theme = await Theme.findById(roomData[0].theme);
       roomData[0].theme = theme;
 
       return res.status(200).json({ room: roomData[0] });
@@ -83,7 +83,7 @@ const joinOneOneRoom = async (req: Request, res: Response) => {
     });
     if (roomData2.length > 0) {
       //popuplate
-      const theme = await Theme.findById(roomData[0].theme).populate("emojis");
+      const theme = await Theme.findById(roomData[0].theme);
       roomData2[0].theme = theme;
       return res.status(200).json({ room: roomData2[0] });
     } else res.status(404).json({ message: "Cant found room joined" });
