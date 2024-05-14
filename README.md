@@ -37,6 +37,11 @@ docker compose up
 3. go-ms should print Received message & Written to MongoDB after done 
 Setup example: https://github.com/segmentio/kafka-go/tree/main/examples
 
+# Tunnel with ngrok  
+1. run with docker above
+2. install ngrok & add token : https://dashboard.ngrok.com/get-started/setup/
+3. ngrok http http://localhost:8000
+
 # Tech Stack  
 - Typescript 
 - Express.js  
