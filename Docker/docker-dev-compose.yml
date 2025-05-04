@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  express:
+    image: chitter/selfhost-meet-be:1.0
+    # depends_on:
+    # - kafka
+    # - runkafka
+    # environment:
+    #   KAKFA_URL: kafka:9092
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  ngrok:
+    image: ngrok/ngrok
+    command: http --url=amazing-griffon-sensible.ngrok-free.app express:8000
+    environment:
+      - NGROK_AUTHTOKEN=1oPPJxJAp5KIh2qTbD7CTdGuIMe_7kp4Qc1ZKpgmjkimnFUCo
+    ports:
+      - "4040:4040"

@@ -8,7 +8,7 @@ import { Message } from "./helper/mongodb";
 import cors from "cors";
 import mongoose from "mongoose";
 
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 const app = express();
 const httpserver = createServer(app);
 const io = new Server(httpserver, { cors: { origin: "*" } });
