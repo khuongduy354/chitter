@@ -24,20 +24,34 @@ npm run dev
 ``` 
 
 # Run with Docker 
-1. Place kafka folder (contain binaries and libs) in ./Dockerbuild  
+1. create a docker.env file inside ./Docker folder
 2. Run commands in order
-```python 
-# in root 
+```python  
+
+# 1. BUILD 
+# UNIX
+make build_all
+
+# others
 docker build -f Dockerbuild/Dockerfile-gopgms -t chitter/go-ms:1.0 . 
 docker build -f Dockerbuild/Dockerfile-express -t chitter/express-server:1.0 .  
 
-// fix to correct versions of the 2 above container in .yml file
-docker compose up 
+# 2. RUN  
+make run-docker-compose
 ``` 
 3. go-ms should print Received message & Written to MongoDB after done 
 Setup example: https://github.com/segmentio/kafka-go/tree/main/examples
 
-# Tunnel with ngrok  
+# Supabase  
+
+```
+cd supabase 
+# check Makefile for available commands
+```
+
+# Tunnel with ngrok   
+<TODO: add this to docker above>  
+
 1. run with docker above
 2. install ngrok & add token : https://dashboard.ngrok.com/get-started/setup/
 3. ngrok http http://localhost:8000
@@ -46,6 +60,9 @@ Setup example: https://github.com/segmentio/kafka-go/tree/main/examples
 - Typescript 
 - Express.js  
 - Socket.io
-- Supabase 
+- Supabase PostgreSQL
+- Golang
+- Kafka
 - MongoDB 
 - Multer
+- Docker 
