@@ -49,5 +49,3 @@ Setup example: https://github.com/segmentio/kafka-go/tree/main/examples
 - Supabase 
 - MongoDB 
 - Multer
-
-

@@ -2,19 +2,52 @@ version: "3.8"
 
 services:
   express:
+    env_file: docker.env
     image: chitter/express:1.0
-    environment:
-      - KAFKA_URL=host.docker.internal:9092
     ports:
       - "8000:8000"
     restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    depends_on:
+      startup_broker:
+        condition: service_completed_successfully
+      broker:
+        condition: service_healthy
+
+  startup_broker:
+    image: apache/kafka:latest
+    depends_on:
+      broker:
+        condition: service_healthy
+    command: >
+      bash -c 
+      ' 
+      ./opt/kafka/bin/kafka-console-producer.sh --bootstrap-server broker:9092 --topic msg-persist << EOF; 
+      ./opt/kafka/bin/kafka-console-producer.sh --bootstrap-server broker:9092 --topic msg-persist-done << EOF; 
+      echo "Startup broker completed successfully";
+      '
+
+    restart: "no" # important: don't retry
+  broker:
+    env_file: docker.env
+    image: apache/kafka:latest
+    container_name: broker
+    ports:
+      - 9092:9092
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "./opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
   go:
+    env_file: docker.env
     image: chitter/gomsq:1.0
-    environment:
-      - KAFKA_URL=host.docker.internal:9092
-
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    depends_on:
+      startup_broker:
+        condition: service_completed_successfully
+      broker:
+        condition: service_healthy

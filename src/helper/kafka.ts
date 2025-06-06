@@ -10,7 +10,7 @@ async function connectKafka() {
         ? "localhost:9092"
         : (process.env.KAFKA_URL as string);
     const kafka = new Kafka({
-      clientId: "my-app2",
+      clientId: process.env.KAFKA_CLIENT_ID || "kafka-client",
       brokers: [kafkaurl],
     });
 
@@ -18,7 +18,9 @@ async function connectKafka() {
     await producer.connect();
     console.log("Kafka producer connected!");
 
-    const consumer = kafka.consumer({ groupId: "g1" });
+    const consumer = kafka.consumer({
+      groupId: process.env.KAFKA_GROUP_ID || "kafka-group",
+    });
     await consumer.connect();
   } catch (err) {
     throw err;

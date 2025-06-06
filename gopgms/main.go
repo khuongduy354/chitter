@@ -11,13 +11,16 @@ import (
 func setup_env() {
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		fmt.Println("Error loading .env file") 
+		fmt.Println(err)
 	}
 }
-func main() {
+
+func mainmain(){
 	setup_env()
 
 	topics := []string{"msg-persist", "msg-persist-done"}
+	// topics := []string{"msg-persist", "msg-persist-done"}
 	reader := initialize_kafka_reader(topics[0])
 	writer := initiliaze_kafka_writer(topics[1])
 
@@ -51,4 +54,30 @@ func main() {
 		}
 
 	}
+}
+func test(){
+  	conf := kafka.ReaderConfig{
+    Brokers:  []string{"localhost:9092"},
+		Topic:    "test-topic",
+		// GroupID:  gid,
+		MaxBytes: 100,
+	  }
+
+    reader := kafka.NewReader(conf)
+
+    // reader := initialize_kafka_reader("test-topic")
+		for {
+		m, err := reader.ReadMessage(context.Background())
+		if err != nil {
+			fmt.Println("Error when reading messages: ", err)
+			continue
+		}
+		
+		msg := string(m.Value)
+		fmt.Println("Received msg from kafka: ", msg)
+	}
+
+} 
+func main() { 
+	mainmain();
 }
