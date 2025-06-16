@@ -1,8 +1,8 @@
 run-docker-compose: 
 	docker compose -f ./Docker/docker-dev-compose.yml up
 
-run-kafka-compose:
-	docker compose -f ./Docker/kafka/kafka-compose.yml up
+run-test-compose:
+	docker compose -f ./Docker/test/docker-test-compose.yml up
 
 stop-docker-compose: 
 	docker compose -f ./Docker/docker-dev-compose.yml down

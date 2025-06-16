@@ -1,0 +1,287 @@
+ -- users
+CREATE OR REPLACE FUNCTION insert_sample_users(
+    num_users INT,
+    rollback_flag BOOLEAN DEFAULT FALSE
+) RETURNS VOID AS $$
+DECLARE
+    i INT;
+    email_text TEXT;
+    name_text TEXT;
+BEGIN
+    -- Start transaction
+    BEGIN
+        FOR i IN 1..num_users LOOP
+            email_text := 'user' || i || '@example.com';
+            name_text := 'User ' || i;
+            
+            INSERT INTO "User" (name, email)
+            VALUES (name_text, email_text);
+        END LOOP;
+        
+        IF rollback_flag THEN
+            RAISE EXCEPTION 'Rollback triggered for demonstration';
+        END IF;
+        
+        COMMIT;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE NOTICE 'Transaction rolled back: %', SQLERRM;
+            RAISE;
+    END;
+END;
+$$ LANGUAGE plpgsql;
+-- friendships
+CREATE OR REPLACE FUNCTION insert_sample_friendships(
+    num_pairs INT,
+    rollback_flag BOOLEAN DEFAULT FALSE
+) RETURNS VOID AS $$
+DECLARE
+    user1_id UUID;
+    user2_id UUID;
+    user_count INT;
+BEGIN
+    -- Start transaction
+    BEGIN
+        -- Get total user count
+        SELECT COUNT(*) INTO user_count FROM "User";
+        
+        IF user_count < 2 THEN
+            RAISE EXCEPTION 'Need at least 2 users to create friendships';
+        END IF;
+        
+        -- Get random pairs of users
+        FOR i IN 1..num_pairs LOOP
+            -- Get two distinct random users
+            SELECT id INTO user1_id FROM "User" ORDER BY random() LIMIT 1;
+            SELECT id INTO user2_id FROM "User" WHERE id != user1_id ORDER BY random() LIMIT 1;
+            
+            INSERT INTO "Friend" (user1_id, user2_id)
+            VALUES (user1_id, user2_id);
+        END LOOP;
+        
+        IF rollback_flag THEN
+            RAISE EXCEPTION 'Rollback triggered for demonstration';
+        END IF;
+        
+        COMMIT;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE NOTICE 'Transaction rolled back: %', SQLERRM;
+            RAISE;
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- one-one-room + users
+CREATE OR REPLACE FUNCTION insert_sample_oneonerooms(
+    num_rooms INT,
+    rollback_flag BOOLEAN DEFAULT FALSE
+) RETURNS VOID AS $$
+DECLARE
+    user1_id UUID;
+    user2_id UUID;
+    theme_text TEXT;
+    user_count INT;
+BEGIN
+    -- Start transaction
+    BEGIN
+        -- Get total user count
+        SELECT COUNT(*) INTO user_count FROM "User";
+        
+        IF user_count < 2 THEN
+            RAISE EXCEPTION 'Need at least 2 users to create one-on-one rooms';
+        END IF;
+        
+        -- Create rooms
+        FOR i IN 1..num_rooms LOOP
+            -- Get two distinct random users
+            SELECT id INTO user1_id FROM "User" ORDER BY random() LIMIT 1;
+            SELECT id INTO user2_id FROM "User" WHERE id != user1_id ORDER BY random() LIMIT 1;
+            
+            -- Simple theme based on iteration
+            theme_text := 'Theme ' || i;
+            
+            INSERT INTO "OneOneRoom" (user1_id, user2_id, theme)
+            VALUES (user1_id, user2_id, theme_text);
+        END LOOP;
+        
+        IF rollback_flag THEN
+            RAISE EXCEPTION 'Rollback triggered for demonstration';
+        END IF;
+        
+        COMMIT;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE NOTICE 'Transaction rolled back: %', SQLERRM;
+            RAISE;
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- group room
+CREATE OR REPLACE FUNCTION insert_sample_groups(
+    num_groups INT,
+    max_members INT DEFAULT 5,
+    rollback_flag BOOLEAN DEFAULT FALSE
+) RETURNS VOID AS $$
+DECLARE
+    admin_id UUID;
+    user_id UUID;
+    group_id UUID;
+    num_members INT;
+    user_count INT;
+BEGIN
+    -- Start transaction
+    BEGIN
+        -- Get total user count
+        SELECT COUNT(*) INTO user_count FROM "User";
+        
+        IF user_count < 1 THEN
+            RAISE EXCEPTION 'Need at least 1 user to create groups';
+        END IF;
+        
+        -- Create groups
+        FOR i IN 1..num_groups LOOP
+            -- Select a random admin
+            SELECT id INTO admin_id FROM "User" ORDER BY random() LIMIT 1;
+            
+            -- Insert group
+            INSERT INTO "Group" (name, theme, admin)
+            VALUES ('Group ' || i, 'Theme ' || i, admin_id)
+            RETURNING id INTO group_id;
+            
+            -- Add members (1 to max_members)
+            num_members := 1 + floor(random() * max_members);
+            
+            FOR j IN 1..num_members LOOP
+                -- Get random user (might be the admin again, but GroupUser has unique constraint)
+                SELECT id INTO user_id FROM "User" ORDER BY random() LIMIT 1;
+                
+                BEGIN
+                    INSERT INTO "GroupUser" (user_id, group_id)
+                    VALUES (user_id, group_id);
+                EXCEPTION WHEN unique_violation THEN
+                    -- Skip if user already in group
+                    CONTINUE;
+                END;
+            END LOOP;
+        END LOOP;
+        
+        IF rollback_flag THEN
+            RAISE EXCEPTION 'Rollback triggered for demonstration';
+        END IF;
+        
+        COMMIT;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE NOTICE 'Transaction rolled back: %', SQLERRM;
+            RAISE;
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
+-- themes
+CREATE OR REPLACE FUNCTION insert_sample_themes(
+    num_themes INT,
+    rollback_flag BOOLEAN DEFAULT FALSE
+) RETURNS VOID AS $$
+DECLARE
+    owner_id UUID;
+    user_count INT;
+BEGIN
+    -- Start transaction
+    BEGIN
+        -- Get total user count
+        SELECT COUNT(*) INTO user_count FROM "User";
+        
+        IF user_count < 1 THEN
+            RAISE EXCEPTION 'Need at least 1 user to create themes';
+        END IF;
+        
+        -- Create themes
+        FOR i IN 1..num_themes LOOP
+            -- Select a random owner
+            SELECT id INTO owner_id FROM "User" ORDER BY random() LIMIT 1;
+            
+            -- Insert theme with simple JSON content
+            INSERT INTO "Theme" (owner, content)
+            VALUES (
+                owner_id, 
+                json_build_object(
+                    'name', 'Theme ' || i,
+                    'colors', json_build_array(
+                        floor(random() * 256),
+                        floor(random() * 256),
+                        floor(random() * 256)
+                    ),
+                    'settings', json_build_object(
+                        'darkMode', (random() > 0.5),
+                        'fontSize', 12 + floor(random() * 6)
+                    )
+                )
+            );
+        END LOOP;
+        
+        IF rollback_flag THEN
+            RAISE EXCEPTION 'Rollback triggered for demonstration';
+        END IF;
+        
+        COMMIT;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE NOTICE 'Transaction rolled back: %', SQLERRM;
+            RAISE;
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
+-- friend requests
+
+CREATE OR REPLACE FUNCTION insert_sample_friend_requests(
+    num_requests INT,
+    rollback_flag BOOLEAN DEFAULT FALSE
+) RETURNS VOID AS $$
+DECLARE
+    from_user UUID;
+    to_user UUID;
+    user_count INT;
+BEGIN
+    -- Start transaction
+    BEGIN
+        -- Get total user count
+        SELECT COUNT(*) INTO user_count FROM "User";
+        
+        IF user_count < 2 THEN
+            RAISE EXCEPTION 'Need at least 2 users to create friend requests';
+        END IF;
+        
+        -- Create friend requests
+        FOR i IN 1..num_requests LOOP
+            -- Get two distinct random users
+            SELECT id INTO from_user FROM "User" ORDER BY random() LIMIT 1;
+            SELECT id INTO to_user FROM "User" WHERE id != from_user ORDER BY random() LIMIT 1;
+            
+            INSERT INTO "FriendRequest" ("to", "from")
+            VALUES (to_user, from_user);
+        END LOOP;
+        
+        IF rollback_flag THEN
+            RAISE EXCEPTION 'Rollback triggered for demonstration';
+        END IF;
+        
+        COMMIT;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RAISE NOTICE 'Transaction rolled back: %', SQLERRM;
+            RAISE;
+    END;
+END;
+$$ LANGUAGE plpgsql;

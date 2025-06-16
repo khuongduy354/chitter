@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  # mongodb:
+  #   image: mongodb/mongodb-community-server:latest
+  #   ports:
+  #     - 27017:27017
+
+  #   healthcheck:
+  #     test: ["CMD", "mongosh", "--eval", "db.runCommand({ping: 1})"]
+  #     interval: 1m30s
+  #     timeout: 30s
+  #     retries: 5
+  #     start_period: 30s
+
+  tester:
+    image: grafana/k6:latest
+    # depends_on:
+    #   mongodb:
+    #     condition: service_healthy
+    volumes:
+      - ../testing/mongodb:/scripts
+    command: run /scripts/mongo.test.js
+    environment:
+      MONGO_URI: "mongodb://mongodb:27017"
+
+  monitor:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ../testing/prometheus:/etc/prometheus/prometheus.yml

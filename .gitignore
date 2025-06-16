@@ -2,3 +2,5 @@ node_modules
 dist
 .env
 gopgms/go.sum
+*backup*
+*symlink
