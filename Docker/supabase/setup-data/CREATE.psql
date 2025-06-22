@@ -1,0 +1,62 @@
+-- Create User table
+create table public."User" (
+  id uuid primary key references auth.users(id),
+  created_at timestamptz not null default now(),
+  name text,
+  email text not null unique
+);
+alter table public."User" enable row level security;
+
+-- Create Friend table
+create table public."Friend" (
+  id uuid primary key default gen_random_uuid(),
+  user1_id uuid not null references public."User"(id),
+  user2_id uuid references public."User"(id)
+);
+alter table public."Friend" enable row level security;
+
+-- Create FriendRequest table
+create table public."FriendRequest" (
+  id bigint primary key generated always as identity,
+  created_at timestamptz not null default now(),
+  "to" uuid references public."User"(id),
+  "from" uuid references public."User"(id)
+);
+alter table public."FriendRequest" enable row level security;
+
+-- Create Group table
+create table public."Group" (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  name text,
+  theme text,
+  admin uuid references public."User"(id)
+);
+alter table public."Group" enable row level security;
+
+-- Create GroupUser table
+create table public."GroupUser" (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public."User"(id),
+  group_id uuid references public."Group"(id)
+);
+alter table public."GroupUser" enable row level security;
+
+-- Create OneOneRoom table
+create table public."OneOneRoom" (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  user1_id uuid references public."User"(id),
+  user2_id uuid references public."User"(id),
+  theme text
+);
+alter table public."OneOneRoom" enable row level security;
+
+-- Create Theme table
+create table public."Theme" (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  owner uuid references public."User"(id),
+  content json
+);
+alter table public."Theme" enable row level security;

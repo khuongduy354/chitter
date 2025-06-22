@@ -1,0 +1,51 @@
+CREATE OR REPLACE FUNCTION public.query_one_one_room(u1 uuid, u2 uuid)
+ RETURNS SETOF "OneOneRoom"
+ LANGUAGE sql
+AS $function$
+  SELECT r.* FROM "OneOneRoom" r
+  WHERE (r.user1_id = u1 and r.user2_id = u2) OR (r.user1_id = u2 and r.user2_id = u1)
+$function$;
+
+CREATE OR REPLACE FUNCTION public.query_friend(email text)
+ RETURNS SETOF "User"
+ LANGUAGE sql
+AS $function$
+-- need removing empty in union 
+--- find user 
+    SELECT U2.* FROM "User"
+    LEFT JOIN "Friend" 
+    ON "User".id = "Friend".user1_id
+--- populate friends
+    LEFT JOIN "User" U2 ON U2.id = "Friend".user2_id
+    WHERE "User".email = query_friend.email AND U2 IS NOT NULL
+    UNION 
+--- symmetry
+    SELECT U2.* FROM "User"
+    LEFT JOIN "Friend"
+    ON "User".id = "Friend".user2_id
+    LEFT JOIN "User" U2 ON U2.id = "Friend".user1_id
+    WHERE "User".email = query_friend.email AND U2 IS NOT NULL
+$function$;
+
+CREATE OR REPLACE FUNCTION public.create_group(groupname text, admin uuid)
+ RETURNS void
+ LANGUAGE sql
+AS $function$ 
+    WITH createdgr AS (
+        INSERT INTO "Group" (name, admin) 
+        VALUES (create_group.groupname, create_group.admin) 
+        RETURNING *
+    )
+    INSERT INTO "GroupUser" (group_id, user_id) 
+    SELECT id, create_group.admin FROM createdgr;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.get_groups(user_id uuid)
+ RETURNS SETOF "Group"
+ LANGUAGE sql
+AS $function$
+    SELECT "Group".* 
+    FROM "GroupUser" 
+    JOIN "Group" ON "GroupUser".group_id = "Group".id
+    WHERE "GroupUser".user_id = get_groups.user_id;
+$function$;
