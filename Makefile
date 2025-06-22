@@ -1,11 +1,18 @@
 run-docker-compose: 
-	docker compose -f ./Docker/docker-dev-compose.yml up
+	docker compose --env-file ./Docker/.env -f ./Docker/docker-dev-compose.yml -f ./Docker/supabase/docker-compose.yml up
 
 run-test-compose:
 	docker compose -f ./Docker/test/docker-test-compose.yml up
 
-stop-docker-compose: 
-	docker compose -f ./Docker/docker-dev-compose.yml down
+
+stop-all-docker-compose: 
+	docker compose  -f ./Docker/docker-dev-compose.yml -f ./Docker/supabase/docker-compose.yml down
+
+run-supabase-compose:
+	docker compose -f ./Docker/supabase/docker-compose.yml up 
+stop-supabase-compose:
+	docker compose -f ./Docker/supabase/docker-compose.yml down
+
 
 # run-docker:  
 # 	docker run --env-file .env -p 8000:8000 selfhost-meet-chitter-be

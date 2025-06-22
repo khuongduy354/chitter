@@ -1,30 +1,36 @@
 import { Request, Response } from "express";
 import { supabase } from "../helper/supabase";
 
+export const linkUser = async (userId: string, email: string) => {
+  const { error } = await supabase
+    .from("User")
+    .insert({ id: userId, email: email });
+  if (error) throw error;
+
+  const result = await supabase.from("User").select().eq("email", email);
+  if (result.data?.length === 0 || !result.data)
+    throw new Error("Failed to create user");
+  return result.data[0];
+};
+
 const signIn = async (req: Request, res: Response) => {
   try {
     const { data } = await supabase
       .from("User")
       .select()
       .eq("email", req.user.email);
-    if (data && data?.length != 0)
-      return res.status(200).json({ user: data[0] });
-    else {
-      const { error } = await supabase
-        .from("User")
-        .insert({ email: req.user.email });
-      if (error) throw error;
 
-      const result = await supabase
-        .from("User")
-        .select()
-        .eq("email", req.user.email);
-      if (result.data?.length == 0 || !result.data)
-        return res.status(400).json({ message: "Error" });
-      else return res.status(201).json({ user: result.data[0] });
+    if (data && data?.length != 0) {
+      return res.status(200).json({ user: data[0] });
+    } else {
+      const user = await linkUser(req.user.id, req.user.email);
+      return res.status(201).json({ user });
     }
-  } catch (err) {}
+  } catch (err) {
+    throw err;
+  }
 };
+
 const getToken = (req: Request) => {
   let token = null;
   if (

@@ -1,5 +1,5 @@
 run: 
-	npx supabase start
+	npx supabase start 
 
 sstop: 
 	npx supabase stop

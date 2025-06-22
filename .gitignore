@@ -4,3 +4,4 @@ dist
 gopgms/go.sum
 *backup*
 *symlink
+Docker/volumes
