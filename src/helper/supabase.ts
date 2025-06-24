@@ -12,14 +12,14 @@ export const supabase = createClient(
 );
 
 export const getEmojiUrlFromName = (filename: string) => {
-  const base =
-    "https://oeuvmrrvzwmiyhbknqct.supabase.co/storage/v1/object/public/Emojis/Emojis/";
+  const base = "";
   return base + filename;
 };
 
 export const getBackgroundImageUrlFromName = (filename: string) => {
-  const base =
-    "https://oeuvmrrvzwmiyhbknqct.supabase.co/storage/v1/object/public/Theme/BackgroundImage/";
+  const base = `${
+    (process.env.SUPABASE_URL as string) || "http://localhost:8000"
+  }/storage/v1/object/public/theme/BackgroundImage/`;
   return base + filename;
 };
 

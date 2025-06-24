@@ -6,6 +6,7 @@ import {
 import uuid4 from "uuid4";
 import { Request, Response } from "express";
 import { supabase } from "../helper/supabase";
+// import { Theme } from "../helper/mongodb";
 import { Theme } from "../models/Theme.model";
 import { MongooseError } from "mongoose";
 
@@ -108,12 +109,13 @@ const getMyEmojis = async (req: Request, res: Response) => {
 // TODO: fix here
 const createTheme = async (req: Request, res: Response) => {
   try {
+    // sanitize
     let { themePayload } = req.body;
     themePayload = JSON.parse(themePayload);
     if (themePayload === null || themePayload === undefined)
       return res.status(400).json({ message: "No theme payload" });
 
-    console.log("themePayload: ", themePayload);
+    // image  upload
     if (themePayload.background.bgType === "image") {
       const file = req.file;
       if (file === undefined)
@@ -121,23 +123,23 @@ const createTheme = async (req: Request, res: Response) => {
 
       const filename =
         req.user.id + "/" + file.originalname + "-" + uuid4().toString();
+
       const { error } = await supabase.storage
-        .from("Theme")
+        .from("theme")
         .upload("BackgroundImage/" + filename, file.buffer, {
           contentType: file.mimetype,
         });
 
       if (error) throw error;
 
-      console.log(getBackgroundImageUrlFromName(filename));
       themePayload.background.image = getBackgroundImageUrlFromName(filename);
     }
 
-    console.log("payload for new theme: ", themePayload);
-    const newTheme = await Theme.create(themePayload).catch((err) => {
+    // layers upload
+    const newTheme = await Theme.insertMany(themePayload).catch((err) => {
       console.log("Mongo err: ", err);
     });
-    console.log("new theme: ", newTheme);
+
     res.status(201).json({ message: "Theme created", theme: newTheme });
   } catch (err) {
     if (err instanceof MongooseError) {
@@ -164,9 +166,6 @@ const getTheme = async (req: Request, res: Response) => {
     const theme = await Theme.findOne({ _id: id });
     return res.status(200).json({ theme });
   } catch (err) {
-    if (err instanceof MongooseError) {
-      return res.status(404).json({ message: err.message });
-    }
     throw err;
   }
 };

@@ -4,10 +4,15 @@ let producer: null | Producer = null;
 let kafka: Kafka | null = null;
 
 function getKafkaInstance() {
+  console.log("Initializing Kafka instance...");
+  console.log("KAFKA_CLIENT_ID:", process.env.KAFKA_CLIENT_ID);
   if (!kafka) {
     const kafkaurl = process.env.KAFKA_URL || "localhost:9092";
+    const clientId = process.env.KAFKA_CLIENT_ID || "kafka-client";
+    console.log("KAFKA_URL:", kafkaurl);
+    console.log("KAFKA_CLIENT_ID:", clientId);
     kafka = new Kafka({
-      clientId: process.env.KAFKA_CLIENT_ID || "kafka-client",
+      clientId,
       brokers: [kafkaurl],
     });
   }
