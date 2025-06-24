@@ -1,5 +1,6 @@
 # Chitter
 A realtime chat app, with customizeable themes, emojis and parallax backgrounds for chat room.
+
 Frontend: https://github.com/khuongduy354/chitter-fe
 
 # Overall Structure
