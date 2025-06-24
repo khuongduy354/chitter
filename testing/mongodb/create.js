@@ -1,7 +1,7 @@
 db.createCollection("messages", {
   timeseries: {
     timeField: "timestamp", // When message was sent
-    metaField: "chatId", // Which chat room/conversation
+    metaField: "_id", // Which chat room/conversation
     granularity: "seconds", // Best for real-time messaging
   },
 });
@@ -13,8 +13,8 @@ function comments() {
     timestamp: new Date(), // Auto-indexed
     chatId: "user1-user2", // Grouped physically with other messages in this chat
     from: "user1",
-    text: "Hey there!",
-    read: false,
+    content: "Hey there!",
+    room: "",
   };
 }
 

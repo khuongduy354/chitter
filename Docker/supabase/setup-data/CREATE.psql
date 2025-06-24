@@ -46,8 +46,8 @@ alter table public."GroupUser" enable row level security;
 create table public."OneOneRoom" (
   id uuid primary key default gen_random_uuid(),
   created_at timestamptz not null default now(),
-  user1_id uuid references public."User"(id),
-  user2_id uuid references public."User"(id),
+  user1_id uuid not null references public."User"(id),
+  user2_id uuid not null references public."User"(id),
   theme text
 );
 alter table public."OneOneRoom" enable row level security;

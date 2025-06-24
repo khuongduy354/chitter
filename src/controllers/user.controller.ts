@@ -97,11 +97,11 @@ const getMe = async (req: Request, res: Response) => {
 };
 const getFriends = async (req: Request, res: Response) => {
   try {
-    const { data } = await supabase.rpc("query_friend", {
+    const { data, error } = await supabase.rpc("query_friend", {
       email: req.user.email,
     });
     if (data) res.status(200).json({ friends: data });
-    else res.status(404).json({ message: "Error" });
+    else res.status(404).json({ message: "Error", error });
   } catch (error) {}
 };
 

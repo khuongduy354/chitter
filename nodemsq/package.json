@@ -1,0 +1,20 @@
+{
+    "name": "nodemsq",
+    "version": "1.0.0",
+    "description": "Node.js message queue consumer",
+    "main": "nodemsq.js",
+    "scripts": {
+        "build": "tsc",
+        "start": "node dist/nodemsq.js",
+        "dev": "ts-node nodemsq.ts"
+    },
+    "dependencies": {
+        "dotenv": "^16.3.1",
+        "kafkajs": "^2.2.4"
+    },
+    "devDependencies": {
+        "@types/node": "^20.4.2",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.1.6"
+    }
+}

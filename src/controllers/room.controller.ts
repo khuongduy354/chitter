@@ -116,10 +116,10 @@ const getRoomMessages = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "no room id found" });
     const limit = _lim === undefined ? 20 : parseInt(_lim.toString());
 
-    const msgs = await Message.find(
-      { room: roomId },
-      { limit, sort: { _id: -1 } }
-    ).toArray();
+    const msgs = await Message.find({ room: roomId })
+      .sort({ id: -1 })
+      .limit(limit)
+      .toArray();
     if (msgs) res.status(200).json({ messages: msgs });
     else res.status(404).json({ message: "Error" });
   } catch (e) {

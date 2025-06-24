@@ -26,7 +26,7 @@ func initiliaze_kafka_writer(topic string) *kafka.Writer {
 
 func initialize_kafka_reader(topic string) *kafka.Reader {
 	kafkaUrl := os.Getenv("KAFKA_URL") 
-	// gid := os.Getenv("KAFKA_GROUP_ID")
+	gid := "g4" 
   if kafkaUrl == ""{   
 	fmt.Println("KAFKA_URL not set, using default localhost:9092 for reader")
     kafkaUrl="localhost:9092";
@@ -36,7 +36,7 @@ func initialize_kafka_reader(topic string) *kafka.Reader {
 	conf := kafka.ReaderConfig{
 		Brokers:  []string{kafkaUrl},
 		Topic:    topic,
-		// GroupID:  gid,
+		GroupID:  gid,
 		MaxBytes: 100,
 	}
 

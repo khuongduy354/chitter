@@ -7,24 +7,24 @@ AS $function$
 $function$;
 
 CREATE OR REPLACE FUNCTION public.query_friend(email text)
- RETURNS SETOF "User"
- LANGUAGE sql
+RETURNS SETOF "User"
+LANGUAGE sql
 AS $function$
--- need removing empty in union 
---- find user 
-    SELECT U2.* FROM "User"
-    LEFT JOIN "Friend" 
-    ON "User".id = "Friend".user1_id
---- populate friends
-    LEFT JOIN "User" U2 ON U2.id = "Friend".user2_id
-    WHERE "User".email = query_friend.email AND U2 IS NOT NULL
-    UNION 
---- symmetry
-    SELECT U2.* FROM "User"
-    LEFT JOIN "Friend"
-    ON "User".id = "Friend".user2_id
-    LEFT JOIN "User" U2 ON U2.id = "Friend".user1_id
-    WHERE "User".email = query_friend.email AND U2 IS NOT NULL
+    -- Friends where the user is user1
+    SELECT u2.* 
+    FROM "User" u
+    JOIN "Friend" f ON u.id = f.user1_id
+    JOIN "User" u2 ON f.user2_id = u2.id
+    WHERE u.email = query_friend.email
+    
+    UNION
+    
+    -- Friends where the user is user2
+    SELECT u2.* 
+    FROM "User" u
+    JOIN "Friend" f ON u.id = f.user2_id
+    JOIN "User" u2 ON f.user1_id = u2.id
+    WHERE u.email = query_friend.email;
 $function$;
 
 CREATE OR REPLACE FUNCTION public.create_group(groupname text, admin uuid)

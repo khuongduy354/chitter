@@ -19,12 +19,12 @@ export const SocketRouteHandler = (io: Server) => {
   //   }
   // });
   // kafka layer
-  subscribeTopic("msg-persist-done", (payload) => { 
-    console.log("msg-persist-done received: ", payload.message)
+  subscribeTopic("msg-persist-done", (payload: any) => {
+    console.log("msg-persist-done received: ", payload.message);
     const { from, room } = payload.message;
     io.to(from).to(room).emit("userChatReceive", payload.message);
   });
-  subscribeTopic("msg-persist-err", (payload) => {
+  subscribeTopic("msg-persist-err", (payload: any) => {
     const { from, room } = payload.message;
     io.to(from).to(room).emit("debugMsg", "Cannot persist message");
   });
@@ -49,7 +49,6 @@ export const SocketRouteHandler = (io: Server) => {
     socket.on(
       "userChat",
       async (sender_id: string, receiver_id: string, content: string) => {
-
         const { data: roomData } = await supabase.rpc("query_one_one_room", {
           u1: sender_id,
           u2: receiver_id,
@@ -59,11 +58,11 @@ export const SocketRouteHandler = (io: Server) => {
             content,
             from: sender_id,
             room: roomData[0].id,
-          }; 
+          };
           sendToKafka(
             "msg-persist",
             [parseMsgJsonToKafkaString(payload)],
-            (payload:any) => {
+            (payload: any) => {
               console.log("sent: ", payload);
             }
           );
@@ -75,6 +74,10 @@ export const SocketRouteHandler = (io: Server) => {
     );
     socket.on("joinGroup", (group_id: string) => {
       socket.join(group_id);
+    });
+
+    socket.on("leaveGroup", (group_id: string) => {
+      socket.leave(group_id);
     });
 
     socket.on(

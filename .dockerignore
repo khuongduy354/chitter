@@ -5,3 +5,5 @@ go.sum
 Dockerbuild
 Docker/supabase 
 Docker/volumes
+.git
+testing

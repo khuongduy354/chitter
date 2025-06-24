@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -15,7 +14,7 @@ import (
 func connect_mongo() *mongo.Collection {
 	uri := os.Getenv("MONGODB_STRING")
 	if uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
+		fmt.Println("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
 	}
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
@@ -43,13 +42,16 @@ func connect_mongo() *mongo.Collection {
 func msg_str_to_bson(msg string) bson.D {
 	arr := strings.Split(msg, "%")
 	if len(arr) != 3 {
-		//TODO
+		//TODO 
+		fmt.Println("Error: message format is incorrect. Expected format: 'content%\from%room'")
+		return nil
 	}
 
 	return bson.D{
 		{Key: "content", Value: arr[0]},
 		{Key: "from", Value: arr[1]},
-		{Key: "room", Value: arr[2]},
+		{Key: "room", Value: arr[2]}, 
+		{Key: "timestamp", },
 	}
 }
 func write_message_to_mongo(coll *mongo.Collection, payload bson.D) error {
