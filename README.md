@@ -2,6 +2,52 @@
 A realtime chat app, with customizeable themes, emojis and parallax backgrounds for chat room.
 Frontend: https://github.com/khuongduy354/chitter-fe
 
+# Overall Structure
+```mermaid
+flowchart TD
+    Client<--->Express_Server
+    Express_Server--->Kafka
+    Express_Server--->MongoDB
+    Go_Server-->Kafka
+    Go_Server-->MongoDB
+
+    Express_Server--->Supabase
+    Supabase--->PostgreSQL 
+    Supabase--->ObjectStorage
+```
+# Flow 
+
+### Join room 
+```mermaid 
+flowchart TD
+```
+
+### Send Realtime messages 
+
+``` mermaid
+flowchart TD
+    Client_2--7.send client 1 message-->Express_Server
+    Client_1--1.send messages-->Express_Server--2.write messages -->Kafka
+    Go_Server--3.take user messages-->Kafka
+    Go_Server--4.write messages-->MongoDB
+    Go_Server--5.notify done-->Kafka
+    Express_Server--6.received done messages-->Kafka
+
+    Express_Server--->Supabase
+    Supabase--->PostgreSQL 
+    Supabase--->ObjectStorage
+``` 
+
+### Themes upload
+
+``` mermaid
+flowchart TD
+``` 
+
+### Other CRUD operations 
+
+
+
 # Features  
 - Google OAuth Authentication
 - 1-1 realtime chat
